@@ -1,5 +1,12 @@
 <?php
 
+Route::filter('user', function(){
+    if(!Auth::check()){
+        return View::make('errors.403');
+    }
+});
+
+
 Route::get('/', function()
 {
 	if(!Auth::check()){
@@ -11,7 +18,7 @@ Route::get('/', function()
     return ($user);
 });
 
-Route::get('/message', function() {
+Route::get('/message', ['before'=>'user', function() {
     // List of threads, linking to message/thread id
     $threads = Message::orWhere(function($query){
         $query
@@ -25,7 +32,7 @@ Route::get('/message', function() {
     $user_list = [''=>'Please select'] + User::where('id', '!=', Auth::id())->lists('email', 'id');
 
     return View::make('message.index', compact('threads', 'user_list'));
-});
+}]);
 
 Route::get('/message/{threadId}', function($threadId) {
     $thread = Message::where('thread_id', $threadId)->orderBy('created_at', 'DESC')->with('user')->get();
